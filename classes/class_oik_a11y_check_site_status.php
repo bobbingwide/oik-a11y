@@ -12,6 +12,8 @@ class oik_a11y_check_site_status
     private $version;
     private $length;
 
+    private $error_message = null;
+
     public $fix_crlf = false;
     public $fix_lf = false;
 
@@ -30,7 +32,7 @@ class oik_a11y_check_site_status
             return "n/a";
         */
         if ( $this->length < 1 ) {
-            return "n/a";
+            return "n/a," . $this->error_message;
         }
         $is_WordPress = $this->isWordPress();
         if ( $is_WordPress ) {
@@ -42,13 +44,20 @@ class oik_a11y_check_site_status
     }
 
     function fetchdomain() {
-        $urlToCheck = "https://{$this->domain}/";
-        $this->contents = file_get_contents($urlToCheck);
-        if ( $this->contents ) {
-            $this->length = strlen($this->contents);
-        } else {
-            $this->length = 0;
-
+        $urlsToCheck = [ "https://{$this->domain}", "https://www.{$this->domain}" ];
+        $this->length = 0;
+        foreach ( $urlsToCheck as $urlToCheck ) {
+            $this->contents = file_get_contents($urlToCheck);
+            if ( $this->contents ) {
+                $this->length = strlen($this->contents);
+                $this->error_message = '';
+                break;
+            } else {
+                $error = error_get_last();
+                //print_r( $error );
+                $this->error_message = $error['message'];
+                $this->length = 0;
+            }
         }
         //echo "Response: $response";
         return $this->length;
