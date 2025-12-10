@@ -13,7 +13,7 @@ switch ( $process ) {
     case 'uk':
     case 'wp':
         $start_position = oik_batch_query_value_from_argv( 2, 140001 );
-        $end_position = oik_batch_query_value_from_argv( 3, $start_position + 99999 );
+        $end_position = oik_batch_query_value_from_argv( 3, $start_position + 9999 );
         oik_a11y_versionise_uk_domains( $start_position, $end_position );
         break;
     /* Step 2 */
@@ -40,7 +40,7 @@ switch ( $process ) {
 
 function oik_a11y_enough_versionised( $enough ) {
     echo "Checking we have enough .UK sites using WordPress: $enough.";
-    $files = glob( 'wp-versions/*.csv');
+    $files = glob( 'wp-versions/*.csv', GLOB_NOSORT);
     //print_r( $files );
     $count_WP = 0;
     $count_OK = 0;
@@ -129,7 +129,7 @@ function oik_a11y_wave_domains( $sites='wp-sites.csv' )
 
     // This is the URL for the API
     $endpoint = 'https://wave.webaim.org/api/request';
-    // Define your WebAIM APIKEY in wp-config.php 
+    // Define your WebAIM APIKEY in wp-config.php
     $apikey = WEBAIM_APIKEY;
 
     oik_require_lib('class-oik-remote');
@@ -144,7 +144,12 @@ function oik_a11y_wave_domains( $sites='wp-sites.csv' )
         if ( !$done ) {
             $wave_report = oik_a11y_get_wave_report($domain, $position, $endpoint, $apikey);
             echo $wave_report;
-            oik_a11y_write_wave_report($domain, $position, $wave_report);
+            echo  PHP_EOL;
+            if ( oik_a11y_valid_wave_report( $wave_report )) {
+                oik_a11y_write_wave_report($domain, $position, $wave_report);
+            } else {
+                echo "Invalid WAVE report for $position $domain" , PHP_EOL;
+            }
         }
     }
 
@@ -179,13 +184,19 @@ function oik_a11y_get_wave_report( $domain, $position, $endpoint, $apikey ) {
         'key' => $apikey,
         'url' => $urlToCheck,
         'format' => 'json',
-        'reporttype' => 1,   // 1=summary only, 2=summary + item types, 3/4 add XPaths/CSS selectors
+        'reporttype' => 2,   // 1=summary only, 2=summary + item types, 3/4 add XPaths/CSS selectors
     ]);
     $requestUrl = $endpoint . '?' . $query;
     // Make the HTTP request
     $response = file_get_contents($requestUrl);
 
     return $response;
+}
+
+function oik_a11y_valid_wave_report( $wave_report ) {
+    $json = json_decode( $wave_report, true );
+    $valid = $json['status']['success'];
+    return $valid;
 }
 
 function oik_a11y_check_site_status( $position, $domain ) {
