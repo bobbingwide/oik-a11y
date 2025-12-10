@@ -33,16 +33,19 @@ class oik_a11y_reports
             //print_r( $json );
             $this->site_report = $site_report;
             //print_r( $stats );
+        } else {
+            echo "No site report for: $position $domain" , PHP_EOL;
+            $this->site_report = null;
         }
     }
 
     function append_site_report( $position, $domain ) {
         if ( $this->site_report['status']['success'] ) {
             $statistics = $this->site_report['statistics'];
-            echo "Report for $position $domain" . $statistics['creditsremaining'], PHP_EOL;
+            echo "Report for $position $domain," . $statistics['creditsremaining'], PHP_EOL;
             $this->sites_reports["{$position}-{$domain}"] = $statistics;
         } else {
-            echo "Report for $position $domain failed";
+            echo "Report for $position $domain failed: ";
             echo $this->site_report['status']['error'] . PHP_EOL;
         }
     }
