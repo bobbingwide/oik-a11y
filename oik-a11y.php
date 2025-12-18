@@ -29,6 +29,7 @@ switch ( $process ) {
     /* Step 4 */
     case 'reports':
     default:
+
         // Other values: other_sites.csv
         $sites = oik_batch_query_value_from_argv( 2, 'wp-sites.csv' );
         oik_a11y_reports( $sites );
@@ -210,9 +211,11 @@ function oik_a11y_check_site_status( $position, $domain ) {
 
 function oik_a11y_reports( $sites ) {
     require_once "classes/class_oik_a11y_reports.php";
+    oik_require( "classes/class_a11y.php", "oik-a11y" );
     $reports = new oik_a11y_reports( $sites );
     $reports->load_sites_reports();
     $reports->report();
+    $reports->report_errors();
 }
 
 
